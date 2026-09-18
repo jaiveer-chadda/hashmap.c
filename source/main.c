@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#include "map/map.h"
 #include "list/list.h"
 #include "hash/hash.h"
 
@@ -10,17 +11,13 @@
 #pragma clang diagnostic ignored "-Wunused-parameter"
 
 int main(const int argc, const char *argv[]) {
-	const char input1[] = "hello";
-	const char input2[] = "ehllo";
-	const int  input3	= 0;
+	HashMap hmap = hm_init();
 
-	printf("%s --> %u\n", input1, hash(&input1, sizeof(input1)));
-	printf("%s --> %u\n", input2, hash(&input2, sizeof(input2)));
-	printf("%d --> %u\n", input3, hash(&input3, sizeof(input3)));
+	hm_free(hmap);
 
 	return 0;
 }
 
 #pragma clang diagnostic pop
 
-// spell:ignoreRegExp /(?<=^#pragma.*"-)W(?=[-a-z]+"$)|"\w+"/gm
+// spell:ignoreRegExp /(?<=^#.+"-)W(?=[-a-z]+"$)/gm
