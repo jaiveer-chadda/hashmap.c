@@ -16,8 +16,15 @@ int main(const int argc, const char *argv[]) {
 	ll_append(llist, "entry 1");
 	ll_append(llist, "entry 2");
 	ll_append(llist, "entry 3");
+	ll_append(llist, "entry 4");
+	ll_append(llist, "entry 5");
+	ll_append(llist, "entry 6");
+	ll_append(llist, "entry 7");
+	ll_append(llist, "entry 8");
+	ll_append(llist, "entry 9");
+	ll_append(llist, "entry 10");
 
-	puts(ll_get(llist, -2));
+	ll_dump(llist);
 
 	return 0;
 }

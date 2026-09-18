@@ -141,3 +141,17 @@ bool ll_rem_idx(LList list, const idx_t idx);
 bool ll_rem_val(LList list, const char *const val);
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
+
+void ll_dump(const LList list) {
+	if (list == NULL) { puts("NULL"); return; }
+
+	const int idxlen = snprintf(NULL, 0, "%zd", (idx_t)(list->len - 1));
+	idx_t idx = 0;
+
+	printf("length = %zu\n", list->len);
+	for (const ll_iter(current, list)) {
+		printf("[%*zd] = \"%s\"\n", idxlen, idx++, current->val);
+	}
+}
+
+/* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
