@@ -3,6 +3,9 @@
 #ifndef HASH_H
 #define HASH_H
 
-void hash(void);
+#include <stddef.h>
+#include <inttypes.h>
+
+uint32_t hash(const void *const input, const size_t size);
 
 #endif /* !HASH_H */
