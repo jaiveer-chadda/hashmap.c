@@ -19,7 +19,7 @@ void  ll_free(LList list);
 idx_t ll_append	(LList list, const char *const val);
 bool  ll_rem_val(LList list, const char *const val);
 bool  ll_rem_idx(LList list, const idx_t idx);
-char *ll_get(const LList list, const idx_t idx);
+const char *ll_get(const LList list, const idx_t idx);
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
