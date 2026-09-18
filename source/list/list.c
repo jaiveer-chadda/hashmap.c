@@ -35,6 +35,11 @@
 #define IDX_OOR_ERROR(caller, llist, index) \
 	EXIT_FATAL(caller, "index %ld is out of range for list of length %lu", (index), (llist)->len)
 
+/* —————————————————————————————————————————————————— */
+
+// #define ll_iter(varname, llist) \
+// 	LLItem *(varname) = (llist)->head; (varname) != NULL; (varname) = (varname)->next
+
 /* —— Typedefs & Structs ——————————————————————————————————————————————————————————————————————————————————————————— */
 
 typedef struct LLItem LLItem;
@@ -214,6 +219,19 @@ const void *ll_pop(LList list, const idx_t idx) {
 }
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
+/* —— ll_iter() ———————————————————————————————————————————————————————————————————————————————————————————————————— */
+
+const void *ll_iter(const LList list) {
+	static const LLItem *current = NULL;
+
+	if (current == NULL) {
+		current = list->head;
+	} else if (( current = current->next ) == NULL) return NULL;
+
+	return current->val;
+}
+
+/* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
 /* —— ll_dump() ———————————————————————————————————————————————————————————————————————————————————————————————————— */
 
 void ll_dump(const LList list, const char *const fmt) {
@@ -224,9 +242,10 @@ void ll_dump(const LList list, const char *const fmt) {
 
 	printf("length = %zu\n", list->len);
 
-	for (const ll_iter(current, list)) {
+	const void *value;
+	while (( value = ll_iter(list) )) {
 		printf("[%*zd] = ", idxlen, idx++);
-		printf(fmt, current->val);
+		printf(fmt, value);
 
 		putchar('\n');
 	}
