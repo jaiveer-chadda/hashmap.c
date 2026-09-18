@@ -10,18 +10,6 @@
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
-#define XNOR ==
-
-#define LLIST_ASSERTIONS(llist) do { \
-	/* there should never be a case in which the head or tail is NULL, and the other one isn't */ \
-	assert((llist->head == NULL) XNOR (llist->tail == NULL)); \
-	/* equally, whenever the head and/or tail is NULL, the length should be 0 */ \
-	assert((llist->head == NULL) XNOR (llist->len == 0 )); \
-	assert((llist->tail == NULL) XNOR (llist->len == 0 )); \
-} while (0)
-
-/* —————————————————————————————————————————————————— */
-
 /** @brief Check if the value `check` is NULL. If it is, print a warning and return `ret`. */
 #define RETURN_IF_NULL(check, ret) do {	\
 	if ((check) == NULL) {				\
@@ -36,16 +24,16 @@
 /* —————————————————————————————————————————————————— */
 
 /** @brief Print an error and hard-exit the program. */
-#define EXIT_FATAL(fmt, ...) do {				\
+#define EXIT_FATAL(caller, fmt, ...) do {		\
 	fprintf(stderr, ("%s: error: " fmt "\n"),	\
-		__func__ __VA_OPT__(,) __VA_ARGS__		\
+		(caller) __VA_OPT__(,) __VA_ARGS__		\
 	);											\
 	exit(EXIT_FAILURE);							\
 } while (0)
 
 /** @brief Print an out-of-range error, specifying the length and index, then exit. */
-#define IDX_OOR_ERROR(llist, index) \
-	EXIT_FATAL("index %ld is out of range for list of length %lu", (index), (llist)->len)
+#define IDX_OOR_ERROR(caller, llist, index) \
+	EXIT_FATAL(caller, "index %ld is out of range for list of length %lu", (index), (llist)->len)
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
@@ -97,10 +85,20 @@ idx_t ll_append(LList list, const char *const val) {
 	return ++list->len; // return the index of the added item
 }
 
-/* —————————————————————————————————————————————————— */
+/* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
-const char *ll_get(const LList list, const idx_t idx) {
-	LLIST_ASSERTIONS(list);
+#define XNOR ==
+
+#define normalise_index(llist, index) \
+	ll__normalise_index(__func__, (llist), (index))
+
+static inline idx_t ll__normalise_index(const char *const caller, const LList list, const idx_t idx) {
+	// there should never be a case in which the head or tail is NULL, and the other one isn't
+	assert((list->head == NULL) XNOR (list->tail == NULL));
+
+	// equally, whenever the head and/or tail is NULL, the length should be 0
+	assert((list->head == NULL) XNOR (list->len == 0));
+	assert((list->tail == NULL) XNOR (list->len == 0));
 
 	// make a copy of the index which we can manipulate as needed
 	idx_t index = idx;
@@ -108,19 +106,28 @@ const char *ll_get(const LList list, const idx_t idx) {
 	// if the user requests the last element, then just return the linked list's tail
 	if (index == -1 || index == (idx_t)(list->len - 1)) {
 		// that is, unless the list is empty
-		if (list->len == 0) IDX_OOR_ERROR(list, index);
-		return list->tail->val;
+		if (list->len == 0) IDX_OOR_ERROR(caller, list, index);
+		return (idx_t)(list->len - 1);
 	}
 
 	// make sure that the list is long enough to accommodate this index
-	if (index >= (idx_t)list->len) IDX_OOR_ERROR(list, index);
+	if (index >= (idx_t)list->len) IDX_OOR_ERROR(caller, list, index);
 
 	// if the index entered was negative, then convert it into its positive counterpart
 	if (index <= -1) {
 		index = list->len + idx;
 		// check that the index is still in range
-		if (index < 0) IDX_OOR_ERROR(list, idx);
+		if (index < 0) IDX_OOR_ERROR(caller, list, idx);
 	}
+
+	return index;
+}
+
+/* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
+
+const char *ll_get(const LList list, const idx_t idx) {
+	const idx_t index = normalise_index(list, idx);
+	if (index == (idx_t)(list->len - 1)) return list->tail->val;
 
 	// iterate through the list until we find the index requested
 	const LLItem *current = list->head;
@@ -134,11 +141,28 @@ const char *ll_get(const LList list, const idx_t idx) {
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
-bool ll_rem_idx(LList list, const idx_t idx);
+const char *ll_pop(LList list, const idx_t idx) {
+	const idx_t index = normalise_index(list, idx);
 
-/* —————————————————————————————————————————————————— */
+	LLItem *prv_item = list->head; /** The item before the item to delete. */
 
-bool ll_rem_val(LList list, const char *const val);
+	for (idx_t i = 0; i < index - 1; i++) {
+		prv_item = prv_item->next;
+		assert(prv_item != NULL);
+	}
+
+	LLItem *const del_item = prv_item->next; /** The item to delete. */
+	LLItem *const nxt_item = del_item->next; /** The item after the item to delete. */
+
+	// set the previous item's `next` field to point to the item that's after the deleted item
+	prv_item->next = nxt_item;
+
+	const char *const retval = del_item->val; // save the deleted item's value so it can be returned.
+	free(del_item);	// delete the item by freeing its memory
+
+	list->len--;	// decrement the list's length
+	return retval;	// and finally, return the value that was held by the now-deleted item
+}
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
 

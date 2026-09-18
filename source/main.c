@@ -13,6 +13,7 @@ int main(const int argc, const char *argv[]) {
 	LList llist = ll_init();
 	if (llist == NULL) return 1;
 
+	ll_append(llist, "entry 0");
 	ll_append(llist, "entry 1");
 	ll_append(llist, "entry 2");
 	ll_append(llist, "entry 3");
@@ -23,6 +24,9 @@ int main(const int argc, const char *argv[]) {
 	ll_append(llist, "entry 8");
 	ll_append(llist, "entry 9");
 	ll_append(llist, "entry 10");
+
+	ll_pop(llist, 3);
+	ll_pop(llist, 10);
 
 	ll_dump(llist);
 
