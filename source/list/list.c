@@ -47,7 +47,7 @@ struct l__llist {
 
 struct LLItem {
 	LLItem *next;
-	const char *val;
+	val_t val;
 };
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
@@ -87,7 +87,7 @@ void ll_free(LList list) {
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
 /* —— ll_append() —————————————————————————————————————————————————————————————————————————————————————————————————— */
 
-idx_t ll_append(LList list, const char *const val) {
+idx_t ll_append(LList list, val_t val) {
 	// allocate memory for this item, and initialise it with the inputted `val` param
 	LLItem *pitem = malloc(sizeof(LLItem));
 	RETURN_IF_NULL(pitem, -1);
@@ -111,7 +111,7 @@ idx_t ll_append(LList list, const char *const val) {
 #define normalise_index(llist, index) \
 	ll__normalise_index(__func__, (llist), (index))
 
-static inline idx_t ll__normalise_index(const char *const caller, const LList list, const idx_t idx) {
+static inline idx_t ll__normalise_index(const val_t const caller, const LList list, const idx_t idx) {
 	// there should never be a case in which the head or tail is NULL, and the other one isn't
 	assert((list->head == NULL) XNOR (list->tail == NULL));
 
@@ -144,7 +144,7 @@ static inline idx_t ll__normalise_index(const char *const caller, const LList li
 
 /* —— ll_get() ————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
-const char *ll_get(const LList list, const idx_t idx) {
+const val_t ll_get(const LList list, const idx_t idx) {
 	const idx_t index = normalise_index(list, idx);
 	if (index == (idx_t)(list->len - 1)) return list->tail->val;
 
@@ -160,7 +160,7 @@ const char *ll_get(const LList list, const idx_t idx) {
 
 /* —— ll_pop() ————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
-const char *ll_pop(LList list, const idx_t idx) {
+const val_t ll_pop(LList list, const idx_t idx) {
 	const idx_t index = normalise_index(list, idx);
 
 	LLItem *prv_item = list->head; /** The item before the item to delete. */
@@ -176,7 +176,7 @@ const char *ll_pop(LList list, const idx_t idx) {
 	// set the previous item's `next` field to point to the item that's after the deleted item
 	prv_item->next = nxt_item;
 
-	const char *const retval = del_item->val; // save the deleted item's value so it can be returned.
+	const val_t const retval = del_item->val; // save the deleted item's value so it can be returned.
 	free(del_item);	// delete the item by freeing its memory
 
 	list->len--;	// decrement the list's length
