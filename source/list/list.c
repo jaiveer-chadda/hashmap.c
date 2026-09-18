@@ -51,6 +51,11 @@ struct LLItem {
 };
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
+/* —— ll_len() ————————————————————————————————————————————————————————————————————————————————————————————————————— */
+
+size_t ll_len(const LList list) { return list->len; }
+
+/* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
 /* —— ll_init() ———————————————————————————————————————————————————————————————————————————————————————————————————— */
 
 LList ll_init(void) {
@@ -82,6 +87,32 @@ void ll_free(LList list) {
 	}
 	free(item_ptrs);
 	free(list);
+}
+
+/* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
+/* —— ll_to_arr() —————————————————————————————————————————————————————————————————————————————————————————————————— */
+
+void **ll_to_arr(LList list) {
+	const void **array = calloc(list->len, sizeof(void*));
+
+	const LLItem *current = list->head;
+	// we have to iterate through the list and save all the pointers that need to be freed
+	//	this could also be done recursively, but honestly, this is easier.
+	for (size_t i = 0; i < list->len; i++) {
+		array[i] = current->val;
+		current = current->next;
+	}
+
+	return (void**)array;
+}
+
+/* —— ll_from_arr() ———————————————————————————————————————————————————————————————————————————————————————————————— */
+
+LList ll_from_arr(const void *const *const array, size_t len) {
+	LList list = ll_init();
+	for (size_t i = 0; i < len; i++) ll_append(list, array[i]);
+
+	return list;
 }
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
