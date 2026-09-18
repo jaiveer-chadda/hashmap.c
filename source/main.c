@@ -27,7 +27,7 @@ int main(const int argc, const char *argv[]) {
 
 	ll_pop(llist, 3);
 
-	ll_dump(llist);
+	ll_dump(llist, "%s");
 
 	ll_free(llist);
 
