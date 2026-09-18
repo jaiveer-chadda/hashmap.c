@@ -37,7 +37,6 @@
 
 /* —— Typedefs & Structs ——————————————————————————————————————————————————————————————————————————————————————————— */
 
-typedef struct l__llist *const LList;
 typedef struct LLItem LLItem;
 
 struct l__llist {
