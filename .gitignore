@@ -1,8 +1,8 @@
 # hashmap/.gitignore
 
 # Project Files
-./out/
-./build/
+out/
+build/
 
 # System Files
 .DS_Store
