@@ -26,9 +26,10 @@ int main(const int argc, const char *argv[]) {
 	ll_append(llist, "entry 10");
 
 	ll_pop(llist, 3);
-	ll_pop(llist, 10);
 
 	ll_dump(llist);
+
+	ll_free(llist);
 
 	return 0;
 }

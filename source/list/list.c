@@ -8,7 +8,7 @@
 
 #include "list.h"
 
-/* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
+/* —— Macro Definitions ———————————————————————————————————————————————————————————————————————————————————————————— */
 
 /** @brief Check if the value `check` is NULL. If it is, print a warning and return `ret`. */
 #define RETURN_IF_NULL(check, ret) do {	\
@@ -35,16 +35,14 @@
 #define IDX_OOR_ERROR(caller, llist, index) \
 	EXIT_FATAL(caller, "index %ld is out of range for list of length %lu", (index), (llist)->len)
 
-/* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
+/* —— Typedefs & Structs ——————————————————————————————————————————————————————————————————————————————————————————— */
 
 typedef struct l__llist *const LList;
 typedef struct LLItem LLItem;
 
-typedef size_t usize_t;
-
 struct l__llist {
 	LLItem *head, *tail;
-	usize_t len;
+	size_t len;
 };
 
 struct LLItem {
@@ -53,6 +51,7 @@ struct LLItem {
 };
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
+/* —— ll_init() ———————————————————————————————————————————————————————————————————————————————————————————————————— */
 
 LList ll_init(void) {
 	LList list = calloc(1, sizeof(struct l__llist));
@@ -61,13 +60,32 @@ LList ll_init(void) {
 	return list;
 }
 
-/* —————————————————————————————————————————————————— */
+/* —— ll_free() ————————————————————————————————————— */
 
 void ll_free(LList list) {
-	if (list != NULL) free(list);
+	if (list == NULL) return;
+
+	const size_t len = list->len; 
+
+	LLItem **item_ptrs = malloc(len * sizeof(LLItem*));
+	LLItem *current = list->head;
+
+	// we have to iterate through the list and save all the pointers that need to be freed
+	//	this could also be done recursively, but honestly, this is easier.
+	for (size_t i = 0; i < len; i++) {
+		item_ptrs[i] = current;
+		current = current->next;
+	}
+
+	for (size_t i = 0; i < len; i++) {
+		free(item_ptrs[i]);
+	}
+	free(item_ptrs);
+	free(list);
 }
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
+/* —— ll_append() —————————————————————————————————————————————————————————————————————————————————————————————————— */
 
 idx_t ll_append(LList list, const char *const val) {
 	// allocate memory for this item, and initialise it with the inputted `val` param
@@ -86,6 +104,7 @@ idx_t ll_append(LList list, const char *const val) {
 }
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
+/* —— normalise_index() ———————————————————————————————————————————————————————————————————————————————————————————— */
 
 #define XNOR ==
 
@@ -123,7 +142,7 @@ static inline idx_t ll__normalise_index(const char *const caller, const LList li
 	return index;
 }
 
-/* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
+/* —— ll_get() ————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
 const char *ll_get(const LList list, const idx_t idx) {
 	const idx_t index = normalise_index(list, idx);
@@ -139,7 +158,7 @@ const char *ll_get(const LList list, const idx_t idx) {
 	return current->val;
 }
 
-/* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
+/* —— ll_pop() ————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
 const char *ll_pop(LList list, const idx_t idx) {
 	const idx_t index = normalise_index(list, idx);
@@ -165,6 +184,7 @@ const char *ll_pop(LList list, const idx_t idx) {
 }
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
+/* —— ll_dump() ———————————————————————————————————————————————————————————————————————————————————————————————————— */
 
 void ll_dump(const LList list) {
 	if (list == NULL) { puts("NULL"); return; }
@@ -178,4 +198,5 @@ void ll_dump(const LList list) {
 	}
 }
 
+/* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
