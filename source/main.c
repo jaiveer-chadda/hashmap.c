@@ -14,7 +14,6 @@ int main(const int argc, const char *argv[]) {
 	HashMap hmap = hm_init();
 
 	hm_free(hmap);
-
 	return 0;
 }
 

@@ -1,8 +1,13 @@
 /// @file map/map.c
 
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "map.h"
+
+/* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
+
+#define HASH_TABLE_SIZE 128
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
@@ -13,13 +18,17 @@ struct hm__hashmap {
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
 HashMap hm_init(void) {
-	return NULL;
+	HashMap hmap = malloc(sizeof(HashMap));
+	hmap->table = calloc(HASH_TABLE_SIZE, sizeof(LList));
+	return hmap;
 }
 
 /* —————————————————————————————————————————————————— */
 
 void hm_free(HashMap map) {
-	if (map != NULL) free(map);
+	if (map == NULL) return;
+	if (map->table != NULL) free((void*)map->table);
+	free((void*)map);
 }
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
