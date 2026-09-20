@@ -6,6 +6,6 @@
 #include <stddef.h>
 #include <inttypes.h>
 
-uint32_t hash(const void *const input, const size_t size);
+uint64_t hash(const void *const input, const size_t size);
 
 #endif /* !HASH_H */
