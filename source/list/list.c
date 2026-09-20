@@ -35,11 +35,6 @@
 #define IDX_OOR_ERROR(caller, llist, index) \
 	EXIT_FATAL(caller, "index %ld is out of range for list of length %lu", (index), (llist)->len)
 
-/* —————————————————————————————————————————————————— */
-
-// #define ll_iter(varname, llist) \
-// 	LLItem *(varname) = (llist)->head; (varname) != NULL; (varname) = (varname)->next
-
 /* —— Typedefs & Structs ——————————————————————————————————————————————————————————————————————————————————————————— */
 
 typedef struct LLItem LLItem;
@@ -74,21 +69,20 @@ LList ll_init(void) {
 void ll_free(LList list) {
 	if (list == NULL) return;
 
-	const size_t len = list->len; 
-
-	LLItem **item_ptrs = malloc(len * sizeof(LLItem*));
+	LLItem **item_ptrs = malloc(list->len * sizeof(LLItem*));
 	LLItem *current = list->head;
 
 	// we have to iterate through the list and save all the pointers that need to be freed
 	//	this could also be done recursively, but honestly, this is easier.
-	for (size_t i = 0; i < len; i++) {
+	for (size_t i = 0; i < list->len; i++) {
 		item_ptrs[i] = current;
 		current = current->next;
 	}
 
-	for (size_t i = 0; i < len; i++) {
+	for (size_t i = 0; i < list->len; i++) {
 		free(item_ptrs[i]);
 	}
+
 	free(item_ptrs);
 	free(list);
 }
@@ -224,10 +218,16 @@ const void *ll_pop(LList list, const idx_t idx) {
 const void *ll_iter(const LList list) {
 	static const LLItem *current = NULL;
 
+	// `current` will be `NULL` on initialisation, and if the last list was completely iterated over
 	if (current == NULL) {
 		current = list->head;
-	} else if (( current = current->next ) == NULL) return NULL;
+	// otherwise, move current to the next list item, and check if it's `NULL`
+	} else if (( current = current->next ) == NULL) {
+		// if it is, then return `NULL`, ending the iteration
+		return NULL;
+	}
 
+	// otherwise, return the new item's value
 	return current->val;
 }
 
@@ -237,6 +237,7 @@ const void *ll_iter(const LList list) {
 void ll_dump(const LList list, const char *const fmt) {
 	if (list == NULL) { puts("NULL"); return; }
 
+	// calculate the max length of the index, for ease of printing
 	const int idxlen = snprintf(NULL, 0, "%zd", (idx_t)(list->len - 1));
 	idx_t idx = 0;
 
