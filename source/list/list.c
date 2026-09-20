@@ -218,6 +218,8 @@ const void *ll_pop(LList list, const idx_t idx) {
 const void *ll_iter(const LList list) {
 	static const LLItem *current = NULL;
 
+	if (list == NULL) return ( current = NULL );
+
 	// `current` will be `NULL` on initialisation, and if the last list was completely iterated over
 	if (current == NULL) {
 		current = list->head;
@@ -242,6 +244,8 @@ void ll_dump(const LList list, const char *const fmt) {
 	idx_t idx = 0;
 
 	printf("length = %zu\n", list->len);
+
+	ll_iter_reset();
 
 	const void *value;
 	while (( value = ll_iter(list) )) {
