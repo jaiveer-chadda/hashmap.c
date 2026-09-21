@@ -7,14 +7,14 @@
 #include "map.h"
 #include "hash/hash.h"
 
-/* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
+/* —— Macro Definitions ———————————————————————————————————————————————————————————————————————————————————————————— */
 
 #define HASH_TABLE_SIZE 128
 
 /// Find the location in the hash table where this key would be stored.
 #define keyHash(key, ksize) (hash((key), (ksize)) % HASH_TABLE_SIZE)
 
-/* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
+/* —— Typedefs & Structs ——————————————————————————————————————————————————————————————————————————————————————————— */
 
 typedef LList bucket_t;
 
@@ -30,6 +30,7 @@ typedef struct kvpair_t {
 } kvpair_t;
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
+/* —— hm_init() ———————————————————————————————————————————————————————————————————————————————————————————————————— */
 
 HashMap hm_init(void) {
 	HashMap hmap = malloc(sizeof(struct hm__hashmap));
@@ -38,8 +39,9 @@ HashMap hm_init(void) {
 }
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
+/* —— hm_free() ———————————————————————————————————————————————————————————————————————————————————————————————————— */
 
-static inline void hm_free_bucket(bucket_t bucket) {
+static inline void hm__free_bucket(bucket_t bucket) {
 	// if the bucket is uninitialised, then there's nothing to free
 	if (bucket == NULL) return;
 
@@ -65,7 +67,7 @@ void hm_free(HashMap map) {
 
 	if (map->table != NULL) {
 		// iterate over all buckets in the table, and free their constituent parts
-		for (int i = 0; i < HASH_TABLE_SIZE; i++) hm_free_bucket(map->table[i]);
+		for (int i = 0; i < HASH_TABLE_SIZE; i++) hm__free_bucket(map->table[i]);
 		free(map->table); // free the table array
 	}
 
@@ -73,6 +75,7 @@ void hm_free(HashMap map) {
 }
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
+/* —— hm_add() ————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
 void hm_add(HashMap map, const void *const key, const size_t ksize, const void *const value) {
 	// get a pointer to the bucket in which we should store this key
@@ -94,6 +97,7 @@ void hm_add(HashMap map, const void *const key, const size_t ksize, const void *
 }
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
+/* —— hm_get() ————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
 void *hm_get(HashMap map, const void *const key, const size_t ksize) {
 	// find the bucket which this key should be stored in
@@ -116,7 +120,8 @@ void *hm_get(HashMap map, const void *const key, const size_t ksize) {
 	return NULL;
 }
 
-/* —————————————————————————————————————————————————— */
+/* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
+/* —— hm_pop() ————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
 void *hm_pop(HashMap map, const void *const key, const size_t ksize);
 
