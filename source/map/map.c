@@ -16,9 +16,11 @@
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
+typedef LList bucket_t;
+
 /// @brief The internal struct to which the `HashMap` type points.
 struct hm__hashmap {
-	LList *table; // array of buckets
+	bucket_t *table; // array of buckets
 };
 
 /// @brief A key-value pair.
@@ -31,7 +33,7 @@ typedef struct kvpair_t {
 
 HashMap hm_init(void) {
 	HashMap hmap = malloc(sizeof(struct hm__hashmap));
-	hmap->table = calloc(HASH_TABLE_SIZE, sizeof(LList));
+	hmap->table = calloc(HASH_TABLE_SIZE, sizeof(bucket_t));
 	return hmap;
 }
 
@@ -47,7 +49,7 @@ void hm_free(HashMap map) {
 
 void hm_add(HashMap map, const void *const key, const size_t ksize, const void *const value) {
 	// get a pointer to the bucket in which we should store this key
-	LList *bucket = &map->table[keyHash(key, ksize)];
+	bucket_t *bucket = &map->table[keyHash(key, ksize)];
 	// if the bucket doesn't exist yet, then initialise a new one
 	if (*bucket == NULL) *bucket = ll_init();
 
@@ -68,7 +70,7 @@ void hm_add(HashMap map, const void *const key, const size_t ksize, const void *
 
 void *hm_get(HashMap map, const void *const key, const size_t ksize) {
 	// find the bucket which this key should be stored in
-	const LList bucket = map->table[keyHash(key, ksize)];
+	const bucket_t bucket = map->table[keyHash(key, ksize)];
 
 	// if a bucket doesn't exist for this key's hash, then we know the key isn't in the hashmap
 	if (bucket == NULL) return NULL;
