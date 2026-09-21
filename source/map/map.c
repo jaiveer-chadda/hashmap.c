@@ -2,23 +2,35 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "map.h"
+#include "hash/hash.h"
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
 #define HASH_TABLE_SIZE 128
 
+/// Find the location in the hash table where this key would be stored.
+#define keyHash(key, ksize) (hash((key), (ksize)) % HASH_TABLE_SIZE)
+
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
+/// @brief The internal struct to which the `HashMap` type points.
 struct hm__hashmap {
 	LList *table; // array of buckets
 };
 
+/// @brief A key-value pair.
+typedef struct kvpair_t {
+	void *val;
+	void *key; size_t ksize;
+} kvpair_t;
+
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
 HashMap hm_init(void) {
-	HashMap hmap = malloc(sizeof(HashMap));
+	HashMap hmap = malloc(sizeof(struct hm__hashmap));
 	hmap->table = calloc(HASH_TABLE_SIZE, sizeof(LList));
 	return hmap;
 }
@@ -33,14 +45,50 @@ void hm_free(HashMap map) {
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
-void hm_add(HashMap map, void *key, void *value);
+void hm_add(HashMap map, const void *const key, const size_t ksize, const void *const value) {
+	// get a pointer to the bucket in which we should store this key
+	LList *bucket = &map->table[keyHash(key, ksize)];
+	// if the bucket doesn't exist yet, then initialise a new one
+	if (*bucket == NULL) *bucket = ll_init();
+
+	// allocate memory for the key-value pair
+	kvpair_t *pair = malloc(sizeof(kvpair_t));
+	*pair = (kvpair_t){
+		// allocate some more memory so the key can be duplicated and stored
+		.key = memcpy(malloc(ksize), key, ksize),
+		.ksize = ksize,
+		.val = (void*)value
+	};
+
+	// add the key-value pair to the bucket (the linked list)
+	ll_append(*bucket, pair);
+}
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
-void hm_get(HashMap map, void *key);
+void *hm_get(HashMap map, const void *const key, const size_t ksize) {
+	// find the bucket which this key should be stored in
+	const LList bucket = map->table[keyHash(key, ksize)];
+
+	// if a bucket doesn't exist for this key's hash, then we know the key isn't in the hashmap
+	if (bucket == NULL) return NULL;
+
+	ll_iter_reset(); // initialise the iteration
+	const kvpair_t *elem;
+
+	// iterate through the linked list, and check each stored key against the inputted key
+	while (( elem = (kvpair_t*)ll_iter(bucket) )) {
+		if (ksize == elem->ksize && memcmp(key, elem->key, ksize) == 0) {
+			return elem->val;
+		}
+	}
+
+	// if we couldn't find any keys that matched the inputted key, then that key isn't in the hashmap either
+	return NULL;
+}
 
 /* —————————————————————————————————————————————————— */
 
-void hm_pop(HashMap map, void *key);
+void *hm_pop(HashMap map, const void *const key, const size_t ksize);
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
