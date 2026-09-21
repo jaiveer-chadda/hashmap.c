@@ -40,9 +40,33 @@ HashMap hm_init(void) {
 /* —————————————————————————————————————————————————— */
 
 void hm_free(HashMap map) {
-	if (map == NULL) return;
-	if (map->table != NULL) free((void*)map->table);
-	free((void*)map);
+	if (map != NULL) {
+		if (map->table != NULL) {
+			// iterate through all buckets in the table
+			for (int i = 0; i < HASH_TABLE_SIZE; i++) {
+				bucket_t bucket = map->table[i];
+				if (bucket != NULL) {
+
+					ll_iter_reset(); // initialise the bucket iteration
+
+					// iterate through the linked list, getting a pointer to another key-value pair each time
+					kvpair_t *pkv_pair;
+					while (( pkv_pair = (kvpair_t*)ll_iter(bucket) )) {
+						// free the memory allocated for the key, then the pair as a whole
+						if (pkv_pair != NULL) {
+							if (pkv_pair->key != NULL) {
+								free(pkv_pair->key);
+							}
+							free(pkv_pair);
+						}
+					}
+					ll_free(bucket);
+				}
+			}
+			free((void*)map->table);
+		}
+		free((void*)map);
+	}
 }
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
