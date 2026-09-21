@@ -17,7 +17,7 @@
 			"%s: warning: %s\n",		\
 			__func__, strerror(errno)	\
 		);								\
-		return (ret);					\
+		return ret;						\
 	}									\
 } while (0)
 
@@ -67,7 +67,8 @@ LList ll_init(void) {
 /* —— ll_free() ————————————————————————————————————— */
 
 void ll_free(LList list) {
-	if (list == NULL) return;
+	// if the list is NULL, then print an error and return
+	RETURN_IF_NULL(list,);
 
 	LLItem **item_ptrs = malloc(list->len * sizeof(LLItem*));
 	LLItem *current = list->head;
@@ -141,6 +142,8 @@ idx_t ll_append(LList list, const void *const val) {
 	ll__normalise_index(__func__, (llist), (index))
 
 static inline idx_t ll__normalise_index(const char *const caller, const LList list, const idx_t idx) {
+	// note: this function takes the `caller` parameter for the sole purpose of printing errors correctly
+
 	// there should never be a case in which the head or tail is NULL, and the other one isn't
 	assert((list->head == NULL) XNOR (list->tail == NULL));
 
@@ -174,6 +177,9 @@ static inline idx_t ll__normalise_index(const char *const caller, const LList li
 /* —— ll_get() ————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
 const void *ll_get(const LList list, const idx_t idx) {
+	// don't try and operate on a list that points to NULL
+	RETURN_IF_NULL(list, NULL);
+
 	const idx_t index = normalise_index(list, idx);
 	if (index == (idx_t)(list->len - 1)) return list->tail->val;
 
@@ -190,6 +196,9 @@ const void *ll_get(const LList list, const idx_t idx) {
 /* —— ll_pop() ————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
 const void *ll_pop(LList list, const idx_t idx) {
+	// don't try and operate on a list that points to NULL
+	RETURN_IF_NULL(list, NULL);
+
 	const idx_t index = normalise_index(list, idx);
 
 	LLItem *prv_item = list->head; /** The item before the item to delete. */
@@ -215,14 +224,18 @@ const void *ll_pop(LList list, const idx_t idx) {
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
 /* —— ll_iter() ———————————————————————————————————————————————————————————————————————————————————————————————————— */
 
-const void *ll_iter(const LList list) {
+const void *l__iter(const LList list, const bool do_reset) {
 	static const LLItem *current = NULL;
 
-	if (list == NULL) return ( current = NULL );
+	// this is just some simple overloading, so I don't have to do anything complicated when resetting the iterator
+	if (do_reset) return ( current = NULL );
+	// if the input was NULL (and we're not resetting), then print an error and return NULL
+	RETURN_IF_NULL(list, NULL);
 
-	// `current` will be `NULL` on initialisation, and if the last list was completely iterated over
+	// `current` will be `NULL` on initialisation, or if the iteration has just been reset
 	if (current == NULL) {
 		current = list->head;
+
 	// otherwise, move current to the next list item, and check if it's `NULL`
 	} else if (( current = current->next ) == NULL) {
 		// if it is, then return `NULL`, ending the iteration

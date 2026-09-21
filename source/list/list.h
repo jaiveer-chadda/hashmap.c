@@ -26,9 +26,12 @@ size_t ll_len(const LList list);
 const void *ll_get(const LList list, const idx_t idx);
 const void *ll_pop(LList list, const idx_t idx);
 
-#define ll_iter_reset() ll_iter(NULL)
-const void *ll_iter(const LList list);
+const void *l__iter(const LList list, const bool do_reset);
 void ll_dump(const LList list, const char *const fmt);
+
+#define ll_iter(list)	l__iter((const LList)(list), false)
+#define ll_iter_reset()	l__iter((const LList)( -1 ), true )
+// note: `-1` is just an arbitrary value - it could be anything, since it's never checked when `do_reset` is `true`
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
