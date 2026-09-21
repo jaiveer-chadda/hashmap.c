@@ -10,17 +10,25 @@
 #pragma clang diagnostic ignored "-Wunused-variable"
 #pragma clang diagnostic ignored "-Wunused-parameter"
 
+typedef char str[];
+
 int main(const int argc, const char *argv[]) {
 	HashMap hmap = hm_init();
 
-	const int k1_ = 3; const char v1_[] = "value 1";
-	const char k2_[] = "string"; const char v2_[] = "value 2";
+	const int	k1_ = 3;
+	const str	k2_ = "str";
+	const char	k3_ = 'x';
 
-	hm_add(hmap, &k1_, sizeof(k1_), v1_);
-	hm_add(hmap, &k2_, sizeof(k2_), v2_);
+	const str	v1_ = "value 1";
+	const str	v2_ = "value 2";
+	const str	v3_ = "value 3";
 
-	puts((char*)hm_get(hmap, &k1_, sizeof(k1_)));
-	puts((char*)hm_get(hmap, &k2_, sizeof(k2_)));
+	hm_adds(hmap, k1_, v1_);
+	hm_adds(hmap, k2_, v2_);
+
+	puts(hm_gets(hmap, k1_));
+	puts(hm_gets(hmap, k2_));
+	puts(hm_gets(hmap, k3_));
 
 	hm_free(hmap);
 	return 0;
