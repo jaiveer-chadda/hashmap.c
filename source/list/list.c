@@ -201,18 +201,27 @@ const void *ll_pop(LList list, const idx_t idx) {
 
 	const idx_t index = normalise_index(list, idx);
 
-	LLItem *prv_item = list->head; /** The item before the item to delete. */
+	LLItem *prv_item = NULL;       /** The item before the item to delete; NULL if deleting the head. */
+	LLItem *del_item = list->head; /** The item to delete. */
 
-	for (idx_t i = 0; i < index - 1; i++) {
-		prv_item = prv_item->next;
-		assert(prv_item != NULL);
+	for (idx_t i = 0; i < index; i++) {
+		prv_item = del_item;
+		del_item = del_item->next;
+		assert(del_item != NULL);
 	}
 
-	LLItem *const del_item = prv_item->next; /** The item to delete. */
 	LLItem *const nxt_item = del_item->next; /** The item after the item to delete. */
 
-	// set the previous item's `next` field to point to the item that's after the deleted item
-	prv_item->next = nxt_item;
+	// update the head directly if there's no previous item
+	if (prv_item == NULL) {
+		list->head = nxt_item;
+	} else {
+		// and just relink around the deleted item if everything exists
+		prv_item->next = nxt_item;
+	}
+
+	// if we just deleted the tail, the new tail is whatever was before it (`NULL` if the list is now empty)
+	if (del_item == list->tail) list->tail = prv_item;
 
 	const void *const retval = del_item->val; // save the deleted item's value so it can be returned.
 	free(del_item);	// delete the item by freeing its memory
@@ -234,7 +243,9 @@ const void *l__iter(const LList list, const bool do_reset) {
 
 	// `current` will be `NULL` on initialisation, or if the iteration has just been reset
 	if (current == NULL) {
-		current = list->head;
+		// move `current` to the list's head.
+		//	if the head is _also_ `NULL`, then the list is empty - there's nothing to iterate over
+		if (( current = list->head ) == NULL) return NULL;
 
 	// otherwise, move current to the next list item, and check if it's `NULL`
 	} else if (( current = current->next ) == NULL) {
