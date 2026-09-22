@@ -1,10 +1,7 @@
 /// @file main.c
 
 #include <stdio.h>
-
 #include "map/map.h"
-#include "list/list.h"
-#include "hash/hash.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-variable"
@@ -25,6 +22,8 @@ int main(const int argc, const char *argv[]) {
 
 	hm_adds(hmap, k1_, v1_);
 	hm_adds(hmap, k2_, v2_);
+
+	hm_pops(hmap, k2_);
 
 	puts(hm_gets(hmap, k1_));
 	puts(hm_gets(hmap, k2_));

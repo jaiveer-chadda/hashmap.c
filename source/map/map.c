@@ -123,6 +123,30 @@ void *hm_get(HashMap map, const void *const key, const size_t ksize) {
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
 /* —— hm_pop() ————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
-void *hm_pop(HashMap map, const void *const key, const size_t ksize);
+void *hm_pop(HashMap map, const void *const key, const size_t ksize) {
+	// get a pointer to the bucket in which this key is stored
+	bucket_t bucket = map->table[keyHash(key, ksize)];
+
+	if (bucket == NULL) return NULL; // key not in mapping
+
+	const kvpair_t *elem;
+	ll_iter_reset();
+	idx_t idx = -1;
+
+	while (( elem = (kvpair_t*)ll_iter(bucket) )) {
+		if (ksize != elem->ksize || memcmp(key, elem->key, ksize) != 0) continue;
+
+		void *retval = elem->val;
+
+		free(elem->key);			// free the memory allocated for the key
+		free((void*)elem);			// then free it for the pair
+		(void)ll_pop(bucket, idx);	// then remove this pair from the bucket entirely
+		(void)ll_iter_reset();		// finally, make sure the iteration is reset for next time
+
+		return retval;
+	}
+
+	return NULL; // key not found
+}
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
