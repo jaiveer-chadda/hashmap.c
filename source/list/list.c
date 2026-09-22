@@ -52,7 +52,10 @@ struct LLItem {
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
 /* —— ll_len() ————————————————————————————————————————————————————————————————————————————————————————————————————— */
 
-size_t ll_len(const LList list) { return list->len; }
+size_t ll_len(const LList list) {
+	RETURN_IF_NULL(list, -1);
+	return list->len;
+}
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
 /* —— ll_init() ———————————————————————————————————————————————————————————————————————————————————————————————————— */
@@ -91,8 +94,9 @@ void ll_free(LList list) {
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
 /* —— ll_to_arr() —————————————————————————————————————————————————————————————————————————————————————————————————— */
 
-void **ll_to_arr(LList list) {
+void **ll_to_arr(const LList list) {
 	const void **array = calloc(list->len, sizeof(void*));
+	RETURN_IF_NULL(array, NULL);
 
 	const LLItem *current = list->head;
 	// we have to iterate through the list and save all the pointers that need to be freed
@@ -107,10 +111,11 @@ void **ll_to_arr(LList list) {
 
 /* —— ll_from_arr() ———————————————————————————————————————————————————————————————————————————————————————————————— */
 
-LList ll_from_arr(const void *const *const array, size_t len) {
+LList ll_from_arr(const void *const *const array, const size_t len) {
 	LList list = ll_init();
-	for (size_t i = 0; i < len; i++) ll_append(list, array[i]);
+	RETURN_IF_NULL(list, NULL);
 
+	for (size_t i = 0; i < len; i++) ll_append(list, array[i]);
 	return list;
 }
 
@@ -139,11 +144,9 @@ idx_t ll_append(LList list, const void *const val) {
 #define XNOR ==
 
 #define normalise_index(llist, index) \
-	ll__normalise_index(__func__, (llist), (index))
+	l__normalise_index(__func__, (llist), (index))
 
-static inline idx_t ll__normalise_index(const char *const caller, const LList list, const idx_t idx) {
-	// note: this function takes the `caller` parameter for the sole purpose of printing errors correctly
-
+static inline idx_t l__normalise_index(const char *const caller, const LList list, const idx_t idx) {
 	// there should never be a case in which the head or tail is NULL, and the other one isn't
 	assert((list->head == NULL) XNOR (list->tail == NULL));
 
@@ -205,22 +208,20 @@ const void *ll_pop(LList list, const idx_t idx) {
 	LLItem *del_item = list->head; /** The item to delete. */
 
 	for (idx_t i = 0; i < index; i++) {
-		prv_item = del_item;
-		del_item = del_item->next;
+		// keep updating the previous item and the item to delete
+		prv_item = del_item, del_item = del_item->next;
+		// `del_item` shouldn't be able to be NULL, since the loop is bounded by `index`, which should be `< list.len`
 		assert(del_item != NULL);
 	}
 
 	LLItem *const nxt_item = del_item->next; /** The item after the item to delete. */
 
 	// update the head directly if there's no previous item
-	if (prv_item == NULL) {
-		list->head = nxt_item;
-	} else {
-		// and just relink around the deleted item if everything exists
-		prv_item->next = nxt_item;
-	}
+	if (prv_item == NULL) list->head = nxt_item;
+	// and just relink around the deleted item if everything exists
+	else prv_item->next = nxt_item;
 
-	// if we just deleted the tail, the new tail is whatever was before it (`NULL` if the list is now empty)
+	// if we're about to delete the tail, the new tail is whatever was before it (`NULL` if the list is now empty)
 	if (del_item == list->tail) list->tail = prv_item;
 
 	const void *const retval = del_item->val; // save the deleted item's value so it can be returned.
@@ -234,25 +235,20 @@ const void *ll_pop(LList list, const idx_t idx) {
 /* —— ll_iter() ———————————————————————————————————————————————————————————————————————————————————————————————————— */
 
 const void *l__iter(const LList list, const bool do_reset) {
+	// the active item being tracked by this iterator
 	static const LLItem *current = NULL;
 
 	// this is just some simple overloading, so I don't have to do anything complicated when resetting the iterator
-	if (do_reset) return ( current = NULL );
-	// if the input was NULL (and we're not resetting), then print an error and return NULL
+	if (do_reset) return ( current = NULL ); // the retval here doesn't matter - this is just a concise way to do it
+
+	// if the input was NULL (and we're not resetting), then print an error, and return NULL
 	RETURN_IF_NULL(list, NULL);
 
-	// `current` will be `NULL` on initialisation, or if the iteration has just been reset
-	if (current == NULL) {
-		// move `current` to the list's head.
-		//	if the head is _also_ `NULL`, then the list is empty - there's nothing to iterate over
-		if (( current = list->head ) == NULL) return NULL;
+	// if the iteration has just started, set `current` to the first element, otherwise, move onto the next element
+	current = (current == NULL) ? list->head : current->next;
 
-	// otherwise, move current to the next list item, and check if it's `NULL`
-	} else if (( current = current->next ) == NULL) {
-		// if it is, then return `NULL`, ending the iteration
-		return NULL;
-	}
-
+	// if the first/next element is `NULL`, then we've reached the end of the list - return NULL
+	if (current == NULL) return NULL;
 	// otherwise, return the new item's value
 	return current->val;
 }
@@ -263,21 +259,24 @@ const void *l__iter(const LList list, const bool do_reset) {
 void ll_dump(const LList list, const char *const fmt) {
 	if (list == NULL) { puts("NULL"); return; }
 
+	printf("length = %zu", list->len);
+
 	// calculate the max length of the index, for ease of printing
+	//	sure, this could be done a better way, but `ll_dump` is mostly used for debugging, so it doesn't rly matter
 	const int idxlen = snprintf(NULL, 0, "%zd", (idx_t)(list->len - 1));
+
+	// set up all the iterator variables
+	const void *value;
 	idx_t idx = 0;
-
-	printf("length = %zu\n", list->len);
-
 	ll_iter_reset();
 
-	const void *value;
+	// print each item's index, along with its value, using the format specifier provided
 	while (( value = ll_iter(list) )) {
-		printf("[%*zd] = ", idxlen, idx++);
+		printf("\n[%*zd] = ", idxlen, idx++);
 		printf(fmt, value);
-
-		putchar('\n');
 	}
+
+	putchar('\n');
 }
 
 /* ————————————————————————————————————————————————————————————————————————————————————————————————————————————————— */
